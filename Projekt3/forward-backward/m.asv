@@ -1,0 +1,59 @@
+% HMM Forward algoritm
+clear all;
+
+% T(N,N)=transition probability matrix
+T = [[0.7, 0.3]; ... % if it is raining today, there's 70% chance it will rain tomorrow
+    [0.3, 0.7]];     % it is sunny today
+
+% E(N,M)=Emission matrix
+E = [[0.9, 0.1]; ... % raining, boss will most likely have umbrella (90%)
+    [0.2, 0.8]];     % sunny, stil chance of umbrella
+
+% pi=initial probability matrix
+pi = [0.5, 0.5];
+
+% O=Given observation sequence labelled in numerics
+% 1=True, 2=False
+%o = [1,2];
+%o = [1,2,1,1,2];
+%o = [2,2,2,2,2,2,2,2,1];
+%o = [1,1,2,1,1];
+%o = [1,1,1,2,2,2];
+%o = [1,2,1,2,1,2];
+
+% Output
+% P=probability of the last state given a sequence of observations
+n_states=length(T(1,:));
+n_observations=length(o);
+
+F = zeros(n_observations+1, n_states);
+F(1,:) = pi;
+for i = 2:n_observations+1
+    F(i,:) = (F(i-1,:) * T * diag(E(:, o(i-1))))';
+    F(i,:) = F(i,:) / sum(F(i,:));
+end
+
+B = zeros(n_observations+1, n_states);
+B(end,:) = ones(1, n_states);
+for i = n_observations:-1:1
+    B(i,:) = T * diag(E(:, o(i))) * B(i+1,:)';
+    B(i,:) = B(i,:) / sum(B(i,:));
+end
+
+FB = zeros(n_observations+1, n_states);
+for i = 1:n_observations+1
+    FB(i,:) = F(i,:) .* B(i,:);
+    FB(i,:) = FB(i,:) / sum(FB(i,:));
+end
+F
+B
+FB
+
+close all
+hold all
+plot(F(:,1));
+plot(FB(:,1));
+plot(2-[1,o]);
+hold off
+
+% don't forget to normalize
